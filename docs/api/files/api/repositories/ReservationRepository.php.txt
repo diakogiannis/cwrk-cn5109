@@ -1,0 +1,114 @@
+<?php
+namespace com\diakogiannis\phpresteasy\api\repositories;
+
+if((@include '../../site/auth.php') === true)
+{
+    include ('../../site/auth.php');
+}else{
+    include ('auth.php');
+}
+use com\diakogiannis\phpresteasy\api\core as CORE;
+/**
+ * @author Alexius Diakogiannis [alexius.diakogiannis@gmail.com]
+ * Date: 09/12/18
+ * Time: 16:02
+ *
+ * @license GPL
+ * @license http://opensource.org/licenses/gpl-license.php GNU Public License
+ *
+ * Created by PhpStorm.
+ */
+require_once __DIR__.'/../../Constants.php';
+require_once (ROOT_PATH.'/api/repositories/AbstractRepository.php');
+
+/**
+ * Class ReservationRepository
+ */
+class ReservationRepository extends AbstractRepository {
+
+    private $tableName = "reservations";
+    private $tableId = "id";
+
+    /**
+     * ReservationRepository constructor.
+     */
+    public function __construct(){
+        parent::__construct($this->tableName,$this->tableId);
+    }
+
+    /**
+     * @param $resdate
+     * @param $tables
+     * @param $seats
+     * @param $email
+     * @param $lname
+     * @param $fname
+     * @param $phone
+     */
+   public function performReservation($resdate,$tables,$seats,$email,$lname,$fname,$phone){
+       $database = new CORE\Database();
+       $parameters = array("resdate"=>$resdate,"seats"=>$seats,"email"=>$email,"lname"=>$lname,"fname"=>$fname,"phone"=>$phone);
+       $database->executeQuery("insert into reservations (email, reservation_date,persons,lname,fname,phone) values (:email,:resdate,:seats,:lname,:fname,:phone)",$parameters);
+
+       $parameters = array("resdate"=>$resdate,"email"=>$email);
+       $reservationId = $database->findAll("select id from reservations where reservation_date = :resdate and email = :email",$parameters);
+
+       foreach ($tables as $table){
+           $parameters = array("resid"=>$reservationId[0]["id"],"tablenum"=>$table["table_number"]);
+           $database->executeQuery("insert into reservations_tables (reservations_id, table_number) VALUES (:resid,:tablenum);",$parameters);
+       }
+
+   }
+
+    /**
+     * @param null $date
+     * @param int $flagall
+     * @return array|null
+     */
+    public function getClientReservations($date=null,$flagall=0){
+       return $this->getReservations($date,null,$flagall);
+    }
+
+    /**
+     * @param null $date
+     * @param null $phone
+     * @return array|null
+     */
+   public function getReservations($date=null,$phone=null,$flagall=0){
+       $database = new CORE\Database();
+       $reservations = null;
+
+       if(is_null($date)){
+           $date=date("Y-m-d");
+       }
+
+       if($_SESSION['role'] == 'ADMIN'){
+
+
+           if (is_null($phone)){
+               $parameters = array("resdate"=>$date);
+               $reservations = $database->findAll("select id, email, reservation_date, persons, fname, lname, phone, reservations_id, table_number from reservations r inner JOIN reservations_tables rt on r.id=rt.reservations_id where DATE(r.reservation_date) = STR_TO_DATE(:resdate, '%Y-%m-%d')",$parameters);
+               if($flagall==1){
+                   $reservations = $database->findAll("select id, email, reservation_date, persons, fname, lname, phone, reservations_id, table_number from reservations r inner JOIN reservations_tables rt on r.id=rt.reservations_id");
+               }
+           }else{
+
+               $parameters = array("resdate"=>$date,"phone"=>$phone);
+               $reservations = $database->findAll("select id, email, reservation_date, persons, fname, lname, phone, reservations_id, table_number from reservations r inner JOIN reservations_tables rt on r.id=rt.reservations_id where DATE(r.reservation_date) = STR_TO_DATE(:resdate, '%Y-%m-%d') and r.phone = :phone",$parameters);
+           }
+       }else{
+           $parameters = array("resdate"=>$date,"email"=>$_SESSION['login_user']);
+           $reservations = $database->findAll("select id, email, reservation_date, persons, fname, lname, phone, reservations_id, table_number from reservations r inner JOIN reservations_tables rt on r.id=rt.reservations_id where DATE(r.reservation_date) = STR_TO_DATE(:resdate, '%Y-%m-%d') and r.email = :email",$parameters);
+           if($flagall==1){
+               $parameters = array("email"=>$_SESSION['login_user']);
+               $reservations = $database->findAll("select id, email, reservation_date, persons, fname, lname, phone, reservations_id, table_number from reservations r inner JOIN reservations_tables rt on r.id=rt.reservations_id where  r.email = :email",$parameters);
+
+           }
+
+       }
+       return $reservations;
+   }
+   
+
+
+}

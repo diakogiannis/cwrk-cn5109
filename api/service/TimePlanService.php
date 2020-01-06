@@ -1,0 +1,57 @@
+<?php
+include ('../../site/auth.php');
+use com\diakogiannis\phpresteasy\api\core as CORE;
+use com\diakogiannis\phpresteasy\api\repositories as REPOS;
+/**
+ * @author Alexius Diakogiannis [alexius.diakogiannis@gmail.com]
+ * Date: 09/12/18
+ * Time: 16:58
+ *
+ * @license GPL
+ * @license http://opensource.org/licenses/gpl-license.php GNU Public License
+ *
+ * Created by PhpStorm.
+ */
+require_once __DIR__.'/../../Constants.php';
+
+require_once (ROOT_PATH.'/api/core/Database.php');
+require_once (ROOT_PATH.'/api/core/Properties.php');
+
+$request_method=$_SERVER["REQUEST_METHOD"];
+
+$error_occured = FALSE;
+switch($request_method)
+{
+    case 'POST':
+        //lets get the data shall we?
+        $starttime = addslashes($_POST["starttime"]);
+        $endtime = addslashes($_POST["endtime"]);
+
+        $database = new CORE\Database();
+
+        if(!empty($starttime) && !empty($endtime)) {
+            $parameters = array("endtime" => $endtime);
+            $database->executeQuery(
+                "update config set config_values = :endtime where config_key='endtime'",
+                $parameters);
+
+            $parameters = array("starttime" => $starttime);
+            $database->executeQuery(
+                "update config set config_values = :starttime where config_key='starttime'",
+                $parameters);
+
+            header("Location: ../../site/settings.php");
+
+        }else{
+            // Invalid Request Method
+            header("HTTP/1.0 405 Method Not Allowed");
+            break;
+        }
+        break;
+    default:
+        // Invalid Request Method
+        header("HTTP/1.0 405 Method Not Allowed");
+        break;
+}
+
+?>

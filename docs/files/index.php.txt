@@ -1,0 +1,19 @@
+<?php
+$request_method=$_SERVER["REQUEST_METHOD"];
+
+switch($request_method)
+	{
+		case 'GET':
+			echo 'Got a GET';
+			break;
+  case 'POST':
+      echo 'Got a POST';
+      break;
+		default:
+			// Invalid Request Method
+			header("HTTP/1.0 405 Method Not Allowed");
+			break;
+	}
+
+
+?>

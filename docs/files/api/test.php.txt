@@ -1,0 +1,33 @@
+<?php
+require_once('../Constants.php');
+require_once(ROOT_PATH.'/api/repositories/ClientRepository.php');
+/*
+$database = new Database;
+$params['firstname']='ALEX%';
+$rslt = $database->findAll("select * from clients where firstname like :firstname",$params);
+*/
+$cr = new ClientRepository();
+print_r(json_encode($cr->findAll()));
+
+
+/*
+{
+  "user": {
+    "email": "a@b.com",
+  "secret": "35%#%#@$%@#$%"
+  },
+  "data": {
+    "someObject": {
+    "field1": "fooo",
+  "field2": "bar"
+  }
+  }
+}
+
+*/
+/*
+$data = json_decode(file_get_contents('php://input'), true);
+var_dump($data);
+echo $data['data']['someObject']['field1'];
+*/
+?>

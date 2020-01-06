@@ -1,0 +1,58 @@
+<?php
+namespace com\diakogiannis\phpresteasy\api\core;
+/**
+ * @author Alexius Diakogiannis [alexius.diakogiannis@gmail.com]
+ * Date: 02/12/18
+ * Time: 23:15
+ *
+ * @license GPL
+ * @license http://opensource.org/licenses/gpl-license.php GNU Public License
+ *
+ * Created by PhpStorm.
+ */
+
+/**
+ * @package com.diakogiannis.phpresteasy.api.core
+ * Usage:
+ * $properties = Properties::getInstance();
+ * echo $properties->getProperty('db.username');
+ *
+ * Class Properties
+ */
+class Properties {
+ 
+    private static $_instance; //The single instance
+    private static $properties;
+
+ public static function getInstance() {
+    if(!self::$_instance) { // If no instance then make one
+        self::$_instance = new self();
+    }
+    return self::$_instance;
+}
+
+
+ /**
+  * constructor that load properties implementing (or at least trying) Singleton pattern
+  *
+  * @param [type] $properties
+  */
+function __construct() {
+     if(self::$properties == null){
+        self::$properties = parse_ini_file("application.properties",true,INI_SCANNER_RAW);
+     }
+  }
+
+  // Magic method clone is empty to prevent duplication
+private function __clone() { }
+
+ /**
+  * Get the value of a property
+  */ 
+ public static function getProperty($key)
+ {
+  return self::$properties[$key];
+ }
+}
+
+?>
